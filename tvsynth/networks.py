@@ -189,7 +189,7 @@ class InvNet(torch.nn.Module, metaclass=ABCMeta):
                 desc="epoch {} / {}".format(epoch, num_epochs),
             )
             optimizer.zero_grad()
-            loss = 0.0
+            loss = 0.0            
             for i in t:
                 indices = permutation[i : i + batch_size]
                 batch = (

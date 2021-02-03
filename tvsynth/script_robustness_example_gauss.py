@@ -36,7 +36,7 @@ X_test, C_test, Y_test = [
 # ----- attack setup -----
 
 # select samples
-sample = 6
+sample = 7
 it = 200
 
 noise_type = noise_gaussian
@@ -52,17 +52,18 @@ noise_rel_show = torch.tensor([0.00, 0.005, 0.02, 0.06, 0.12]).float()
 noise_rel = (
     torch.cat([noise_rel_show, noise_rel_grid]).float().unique(sorted=True)
 )
+
 print(noise_rel)
 
 # select measure for reconstruction error
 err_measure = err_measure_l2
 
 # select reconstruction methods
-methods_include = ["L1", "UNet jit", "Tiramisu EE jit", "UNet It jit"]
+methods_include = ["Tiramisu EE jit"]
 methods = methods.loc[methods_include]
 
 # select methods excluded from (re-)performing attacks
-methods_no_calc = ["L1", "UNet jit", "Tiramisu EE jit", "UNet It jit"]
+methods_no_calc = []
 
 # ----- perform attack -----
 
@@ -147,7 +148,7 @@ if do_plot:
 
             idx_noise_cur = torch.where(
                 noise_rel == noise_rel_show[idx_noise]
-            )[0]
+            )[0]                    
             X_cur = results.loc[idx].X[idx_noise_cur, ...].squeeze(0)
 
             fig, ax = plt.subplots(clear=True, figsize=(5, 3), dpi=200)
@@ -184,7 +185,7 @@ if do_plot:
                         "fig_example_S{}_gauss_".format(sample)
                         + method.info["name_save"]
                         + "_{:.0e}".format(noise_rel_show[idx_noise].item())
-                        + ".pdf",
+                        + ".png",
                     ),
                     bbox_inches="tight",
                 )

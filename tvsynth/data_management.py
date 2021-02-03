@@ -59,7 +59,7 @@ def create_dataset(m, n, measure, set_params, generator, gen_params):
 
     X_train = torch.zeros(N_train, n)
     C_train = torch.zeros(N_train, n)
-    for idx in tqdm(range(N_train), desc="generating training signals"):
+    for idx in tqdm(range(N_train), desc="generating training signals"):        
         x, c = _get_signal()
         X_train[idx, :] = x
         C_train[idx, :] = c
@@ -204,6 +204,7 @@ def sample_tv_signal(
         )
     ) + np.arange(num) * (min_dist - 1)
 
+
     # synthesize signal
     coefs = torch.zeros(n_restr)
     coefs[-1] = torch.randn(1)  # random signal mean (constant shift)
@@ -211,7 +212,14 @@ def sample_tv_signal(
     coefs[torch.abs(coefs) < min_height] = (
         torch.sign(coefs[torch.abs(coefs) < min_height]) * min_height
     )  # minimal height
-    x_restr = TVSynthesis(n_restr)(coefs)
+    
+    
+    # coefs[pos + 1] = (coefs[pos] * -1)
+    # if coefs[-1] != 0:
+    #     if coefs[-2] ==0:
+    #         coefs[-1] = 0.
+    
+    x_restr = TVSynthesis(n_restr)(coefs)    
 
     # pad with 0s
     x = torch.zeros(n)

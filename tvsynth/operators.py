@@ -522,7 +522,7 @@ class TVSynthesis(LinearOperator):
             dim=0,
         )
 
-        # construct pseudo inverse
+        # construct pseudo inverse        
         temp = np.flip((-1) * np.linspace(1 / n, (n - 1) / n, n - 1))
         Temp = np.tile(temp, (n, 1))
         Temp2 = np.tril(np.ones((n, n)), -1)
@@ -536,6 +536,7 @@ class TVSynthesis(LinearOperator):
         self._t_A_adj_func = wrap_operator(self.t_A.T)
 
     def dot(self, x):
+        import pdb; pdb.set_trace()
         return self._t_A_func(x)
 
     def adj(self, y):

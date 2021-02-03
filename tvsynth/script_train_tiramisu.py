@@ -71,7 +71,7 @@ train_params = {
         )
         for i in range(train_phases + 1)
     ],
-    "save_epochs": 1,
+    "save_epochs": 20,
     "optimizer": torch.optim.Adam,
     "optimizer_params": [
         {"lr": 2e-4, "eps": 1e-5, "weight_decay": 5e-4},

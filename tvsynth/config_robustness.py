@@ -249,108 +249,108 @@ unet_params = {
 }
 
 
-_append_net(
-    "UNet jit",
-    {
-        "name_disp": "UNet",
-        "name_save": "unet_jit",
-        "plt_color": "#ff7c00",
-        "plt_marker": "o",
-        "plt_linestyle": ":",
-        "plt_linewidth": 2.75,
-    },
-    _load_net(
-        "results/unet_jitter_train_phase_2/model_weights.pt",
-        UNet,
-        unet_params,
-        {
-            "operator": OpA,
-            "inverter": _get_inverter_tikh(reg_fac=2e-2),
-            "num_iter": 1,
-            "lam": 0.0,
-            "lam_learnable": False,
-            "final_dc": False,
-        },
-    ),
-)
+# _append_net(
+#     "UNet jit",
+#     {
+#         "name_disp": "UNet",
+#         "name_save": "unet_jit",
+#         "plt_color": "#ff7c00",
+#         "plt_marker": "o",
+#         "plt_linestyle": ":",
+#         "plt_linewidth": 2.75,
+#     },
+#     _load_net(
+#         "results/unet_jitter_train_phase_2/model_weights.pt",
+#         UNet,
+#         unet_params,
+#         {
+#             "operator": OpA,
+#             "inverter": _get_inverter_tikh(reg_fac=2e-2),
+#             "num_iter": 1,
+#             "lam": 0.0,
+#             "lam_learnable": False,
+#             "final_dc": False,
+#         },
+#     ),
+# )
 
 
-_append_net(
-    "UNet EE jit",
-    {
-        "name_disp": "UNetFL",
-        "name_save": "unet_ee_jit",
-        "plt_color": "maroon",
-        "plt_marker": "o",
-        "plt_linestyle": "-",
-        "plt_linewidth": None,
-    },
-    _load_net(
-        "results/unet_ee_jitter_train_phase_2/model_weights.pt",
-        UNet,
-        unet_params,
-        {
-            "operator": OpA,
-            "inverter": _get_inverter_tikh(),  # placeholder, learned
-            "num_iter": 1,
-            "lam": 0.0,
-            "lam_learnable": False,
-            "final_dc": False,
-        },
-    ),
-)
+# _append_net(
+#     "UNet EE jit",
+#     {
+#         "name_disp": "UNetFL",
+#         "name_save": "unet_ee_jit",
+#         "plt_color": "maroon",
+#         "plt_marker": "o",
+#         "plt_linestyle": "-",
+#         "plt_linewidth": None,
+#     },
+#     _load_net(
+#         "results/unet_ee_jitter_train_phase_2/model_weights.pt",
+#         UNet,
+#         unet_params,
+#         {
+#             "operator": OpA,
+#             "inverter": _get_inverter_tikh(),  # placeholder, learned
+#             "num_iter": 1,
+#             "lam": 0.0,
+#             "lam_learnable": False,
+#             "final_dc": False,
+#         },
+#     ),
+# )
 
-_append_net(
-    "UNet It",
-    {
-        "name_disp": "ItNet no jitter",
-        "name_save": "unet_it",
-        "plt_color": "royalblue",
-        "plt_marker": "o",
-        "plt_linestyle": "--",
-        "plt_linewidth": None,
-    },
-    _load_net(
-        "results/unet_it_tikh_train_phase_2/model_weights.pt",
-        UNet,
-        unet_params,
-        {
-            "operator": OpA,
-            "inverter": _get_inverter_tikh(reg_fac=2e-2),
-            "num_iter": 8,
-            "lam": 8 * [0.1],
-            "lam_learnable": False,
-            "final_dc": True,
-        },
-    ),
-)
+# _append_net(
+#     "UNet It",
+#     {
+#         "name_disp": "ItNet no jitter",
+#         "name_save": "unet_it",
+#         "plt_color": "royalblue",
+#         "plt_marker": "o",
+#         "plt_linestyle": "--",
+#         "plt_linewidth": None,
+#     },
+#     _load_net(
+#         "results/unet_it_tikh_train_phase_2/model_weights.pt",
+#         UNet,
+#         unet_params,
+#         {
+#             "operator": OpA,
+#             "inverter": _get_inverter_tikh(reg_fac=2e-2),
+#             "num_iter": 8,
+#             "lam": 8 * [0.1],
+#             "lam_learnable": False,
+#             "final_dc": True,
+#         },
+#     ),
+# )
 
-_append_net(
-    "UNet It jit",
-    {
-        "name_disp": "ItNet",
-        "name_save": "unet_it_jit",
-        "plt_color": "#023eff",
-        "plt_marker": "o",
-        "plt_linestyle": "--",
-        "plt_linewidth": 2.75,
-    },
-    _load_net(
-        "results/unet_it_tikh_jitter_train_phase_2/model_weights.pt",
-        UNet,
-        unet_params,
-        {
-            "operator": OpA,
-            "inverter": _get_inverter_tikh(reg_fac=2e-2),
-            "num_iter": 8,
-            "lam": 8 * [0.1],
-            "lam_learnable": False,
-            "final_dc": True,
-        },
-    ),
-)
+# _append_net(
+#     "UNet It jit",
+#     {
+#         "name_disp": "ItNet",
+#         "name_save": "unet_it_jit",
+#         "plt_color": "#023eff",
+#         "plt_marker": "o",
+#         "plt_linestyle": "--",
+#         "plt_linewidth": 2.75,
+#     },
+#     _load_net(
+#         "results/unet_it_tikh_jitter_train_phase_2/model_weights.pt",
+#         UNet,
+#         unet_params,
+#         {
+#             "operator": OpA,
+#             "inverter": _get_inverter_tikh(reg_fac=2e-2),
+#             "num_iter": 8,
+#             "lam": 8 * [0.1],
+#             "lam_learnable": False,
+#             "final_dc": True,
+#         },
+#     ),
+# )
 
-# ----- Tiramisu -----
+# # ----- Tiramisu -----
 
 tiramisu_params = {
     "in_channels": 1,
@@ -365,30 +365,30 @@ tiramisu_params = {
 }
 
 
-_append_net(
-    "Tiramisu jit",
-    {
-        "name_disp": "Tira",
-        "name_save": "tiramisu_jit",
-        "plt_color": "turquoise",
-        "plt_marker": "o",
-        "plt_linestyle": "-",
-        "plt_linewidth": None,
-    },
-    _load_net(
-        "results/tiramisu_jitter_train_phase_2/model_weights.pt",
-        Tiramisu,
-        tiramisu_params,
-        {
-            "operator": OpA,
-            "inverter": _get_inverter_tikh(reg_fac=2e-2),
-            "num_iter": 1,
-            "lam": 0.0,
-            "lam_learnable": False,
-            "final_dc": False,
-        },
-    ),
-)
+# _append_net(
+#     "Tiramisu jit",
+#     {
+#         "name_disp": "Tira",
+#         "name_save": "tiramisu_jit",
+#         "plt_color": "turquoise",
+#         "plt_marker": "o",
+#         "plt_linestyle": "-",
+#         "plt_linewidth": None,
+#     },
+#     _load_net(
+#         "results/tiramisu_jitter_train_phase_2/model_weights.pt",
+#         Tiramisu,
+#         tiramisu_params,
+#         {
+#             "operator": OpA,
+#             "inverter": _get_inverter_tikh(reg_fac=2e-2),
+#             "num_iter": 1,
+#             "lam": 0.0,
+#             "lam_learnable": False,
+#             "final_dc": False,
+#         },
+#     ),
+# )
 
 
 _append_net(
@@ -402,7 +402,7 @@ _append_net(
         "plt_linewidth": 2.75,
     },
     _load_net(
-        "results/tiramisu_ee_jitter_train_phase_2/model_weights.pt",
+        "tv_synth_results/tiramisu_ee_jitter_train_phase_2/model_weights.pt",
         Tiramisu,
         tiramisu_params,
         {

@@ -4,8 +4,8 @@ from data_management import sample_tv_signal
 from operators import Gaussian
 
 
-DATA_PATH = os.path.join("raw_data")
-RESULTS_PATH = os.path.join("results")
+DATA_PATH = os.path.join("tv_synth_raw_data_spikes")
+RESULTS_PATH = os.path.join("tv_synth_results_spikes")
 
 # ----- random seeds -----
 torch_seed = 1
@@ -28,7 +28,6 @@ m = 100  # measurement dimension
 meas_params = {"seed": matrix_seed}  # additional measurement parameters
 meas_op = Gaussian  # measurement operator
 
-# ----- data set configuration -----
 set_params = {
     "num_train": 200000,
     "num_val": 1000,

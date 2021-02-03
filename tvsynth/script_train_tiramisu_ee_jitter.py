@@ -62,7 +62,8 @@ def loss_func(pred, tar):
 train_phases = 2
 train_params = {
     "num_epochs": [200, 50],
-    "batch_size": [40, 40],
+    # "batch_size": [40, 40],
+    "batch_size": [512, 512],
     "loss_func": loss_func,
     "save_path": [
         os.path.join(
@@ -72,7 +73,7 @@ train_params = {
         )
         for i in range(train_phases + 1)
     ],
-    "save_epochs": 1,
+    "save_epochs": 10,
     "optimizer": torch.optim.Adam,
     "optimizer_params": [
         {"lr": 2e-4, "eps": 1e-5, "weight_decay": 5e-4},
