@@ -47,11 +47,11 @@ noise_rel = torch.tensor([0.00, 0.001, 0.005, 0.01, 0.02, 0.04, 0.06])
 err_measure = err_measure_l2
 
 # select reconstruction methods
-methods_include = ["L1", "UNet jit", "Tiramisu EE jit", "UNet It jit"]
+methods_include = ["Tiramisu EE jit", "L1"]
 methods = methods.loc[methods_include]
 
 # select methods excluded from (re-)performing attacks
-methods_no_calc = ["L1", "UNet jit", "Tiramisu EE jit", "UNet It jit"]
+methods_no_calc = []
 
 # ----- perform attack -----
 

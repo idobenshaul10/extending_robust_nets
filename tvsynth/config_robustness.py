@@ -32,6 +32,8 @@ methods = methods.set_index("name")
 
 noise_ref = noise_gaussian
 
+
+###################################################################################3
 # ----- set up L1 --------
 
 # recovery parameters for L1 via primal dual
@@ -150,6 +152,10 @@ methods.loc["L1"] = {
     "net": None,
 }
 methods.loc["L1", "net"] = None
+
+################################################################################
+
+
 
 
 # ----- set up net attacks --------
@@ -402,7 +408,7 @@ _append_net(
         "plt_linewidth": 2.75,
     },
     _load_net(
-        "tv_synth_results/tiramisu_ee_jitter_train_phase_2/model_weights.pt",
+        "tv_synth_results_spikes/tiramisu_ee_jitter_train_phase_2/model_weights.pt",
         Tiramisu,
         tiramisu_params,
         {

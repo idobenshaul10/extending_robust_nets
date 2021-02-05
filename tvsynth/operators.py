@@ -451,8 +451,9 @@ class TVAnalysis(LinearOperator):
         )
 
         # construct pseudo inverse
-        temp = np.flip((-1) * np.linspace(1 / n, (n - 1) / n, n - 1))
+        temp = np.flip((-1) * np.linspace(1 / n, (n - 1) / n, n - 1))        
         Temp = np.tile(temp, (n, 1))
+
         Temp2 = np.tril(np.ones((n, n)), -1)
         pinvgrad = Temp + Temp2[0:n, 0 : n - 1]
         pinvgrad = np.concatenate((pinvgrad, np.ones((n, 1))), axis=1)
@@ -462,14 +463,15 @@ class TVAnalysis(LinearOperator):
         self._t_A_pinv_func = wrap_operator(self.t_A_pinv)
 
     def dot(self, x):
-        return torch.cat(
+        
+        result = torch.cat(
             [
                 x[..., 1:] - x[..., :-1],
-                x.mean(axis=-1, keepdim=True)
-                * torch.ones(x.shape[:-1] + (1,), device=self.device),
+                x.mean(axis=-1, keepdim=True)* torch.ones(x.shape[:-1] + (1,), device=self.device),
             ],
             dim=-1,
         )
+        return result
 
     def adj(self, y):
         result = torch.zeros(y.shape[:-1] + (self.n,), device=self.device)
@@ -535,9 +537,10 @@ class TVSynthesis(LinearOperator):
         self._t_A_func = wrap_operator(self.t_A)
         self._t_A_adj_func = wrap_operator(self.t_A.T)
 
-    def dot(self, x):
-        import pdb; pdb.set_trace()
-        return self._t_A_func(x)
+    def dot(self, x):        
+        result = self._t_A_func(x)        
+        # result = x
+        return result
 
     def adj(self, y):
         return self._t_A_adj_func(y)

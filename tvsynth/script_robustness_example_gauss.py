@@ -36,7 +36,7 @@ X_test, C_test, Y_test = [
 # ----- attack setup -----
 
 # select samples
-sample = 7
+sample = 1
 it = 200
 
 noise_type = noise_gaussian
@@ -44,14 +44,15 @@ noise_type = noise_gaussian
 # select range relative noise
 noise_min = 1e-3
 noise_max = 0.06
-noise_steps = 50
+noise_steps = 5
 noise_rel_grid = torch.tensor(
     np.logspace(np.log10(noise_min), np.log10(noise_max), num=noise_steps)
 ).float()
 noise_rel_show = torch.tensor([0.00, 0.005, 0.02, 0.06, 0.12]).float()
-noise_rel = (
-    torch.cat([noise_rel_show, noise_rel_grid]).float().unique(sorted=True)
-)
+# noise_rel = (
+#     torch.cat([noise_rel_show, noise_rel_grid]).float().unique(sorted=True)
+# )
+noise_rel = noise_rel_show
 
 print(noise_rel)
 

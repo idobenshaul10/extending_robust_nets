@@ -4,6 +4,7 @@ import numpy as np
 import torch
 
 from tqdm import tqdm
+from collections import Counter
 
 from operators import TVAnalysis, TVSynthesis
 
@@ -207,19 +208,23 @@ def sample_tv_signal(
 
     # synthesize signal
     coefs = torch.zeros(n_restr)
-    coefs[-1] = torch.randn(1)  # random signal mean (constant shift)
+    # coefs[-1] = torch.randn(1)  # random signal mean (constant shift)
+    coefs[-1] = 0
     coefs[pos] = torch.randn(num)  # random jump heights around the mean
     coefs[torch.abs(coefs) < min_height] = (
         torch.sign(coefs[torch.abs(coefs) < min_height]) * min_height
-    )  # minimal height
+    )  # minimal height    
     
     
-    # coefs[pos + 1] = (coefs[pos] * -1)
-    # if coefs[-1] != 0:
-    #     if coefs[-2] ==0:
-    #         coefs[-1] = 0.
-    
+    # coefs[pos + 1] = (coefs[pos] * -1)    
+    # coefs[-1] = coefs.mean()    
+
     x_restr = TVSynthesis(n_restr)(coefs)    
+    
+    # x_restr = np.array(x_restr)
+    # import pdb; pdb.set_trace()    
+    # x_restr = torch.tensor(x_restr)
+
 
     # pad with 0s
     x = torch.zeros(n)
@@ -227,6 +232,7 @@ def sample_tv_signal(
 
     # real coefs
     coefs = TVAnalysis(n)(x)
+    # import pdb; pdb.set_trace()
 
     return x, coefs
 
