@@ -15,6 +15,7 @@ from operators import (
     proj_l2_ball,
 )
 from reconstruction_methods import primaldual
+from sklearn import linear_model
 
 
 # ------ setup ----------
@@ -55,9 +56,9 @@ def _reconstructL1(y, noise_level):
         c0=torch.zeros(config.n,).to(device),
         y0=torch.zeros(config.m,).to(device),
         eta=noise_level,
-        silent=True,
+        silent=False,
         **rec_params
-    )
+    )    
     return x
 
 
@@ -154,6 +155,67 @@ methods.loc["L1"] = {
 methods.loc["L1", "net"] = None
 
 ################################################################################
+###################################################################################3
+# ----- set up Sparstiy --------
+
+# recovery parameters for L1 via primal dual
+OpAW_norm = get_operator_norm(OpA, OpTVSynth)
+rec_params = {
+    "sigma": 1.0 / (OpAW_norm + 1e0),
+    "tau": 1.0 / (OpAW_norm + 1e0),
+    "theta": 1e0,
+}
+
+
+# the actual reconstruction method
+def _reconstructSparsity(y, noise_level):   
+    
+    A_mat = OpA.t_A.cpu()
+    y = y.reshape(A_mat.shape[0], -1).cpu()
+
+    # for i in np.arange(1e-6, 1, 0.00001):
+    alpha = 10
+    clf = linear_model.Lasso(alpha=alpha, max_iter=50000)
+    clf.fit(A_mat, y)
+    print(clf.coef_.mean())    
+    
+    x = torch.tensor(clf.coef_).cuda().unsqueeze(1)
+
+    return x
+
+
+# the reconstruction method used for the L1 attack
+# (less iterations due to high computational costs)
+def _reconstructL1_adv(y, noise_level, c0, y0):
+    x, _, _ = primaldual(
+        y,
+        OpA,
+        OpTVSynth,
+        iter=2000,
+        c0=c0,
+        y0=y0,
+        eta=noise_level,
+        silent=True,
+        **rec_params
+    )
+    return x
+
+methods.loc["Sparsity"] = {
+    "info": {
+        "name_disp": "Sparsity",
+        "name_save": "tv",
+        "plt_color": "#e8000b",
+        "plt_marker": "o",
+        "plt_linestyle": "-",
+        "plt_linewidth": 2.75,
+    },
+    "reconstr": _reconstructSparsity,
+    "attacker": lambda x0, noise_rel, yadv_init=None: _attackerL1(
+        x0, noise_rel, yadv_init=yadv_init
+    ),
+    "net": None,
+}
+methods.loc["Sparsity", "net"] = None
 
 
 

@@ -48,7 +48,8 @@ noise_steps = 5
 noise_rel_grid = torch.tensor(
     np.logspace(np.log10(noise_min), np.log10(noise_max), num=noise_steps)
 ).float()
-noise_rel_show = torch.tensor([0.00, 0.005, 0.02, 0.06, 0.12]).float()
+# noise_rel_show = torch.tensor([0.00, 0.005, 0.02, 0.06, 0.12]).float()
+noise_rel_show = torch.tensor([0.005]).float()
 # noise_rel = (
 #     torch.cat([noise_rel_show, noise_rel_grid]).float().unique(sorted=True)
 # )
@@ -60,7 +61,7 @@ print(noise_rel)
 err_measure = err_measure_l2
 
 # select reconstruction methods
-methods_include = ["Tiramisu EE jit"]
+methods_include = ["Sparsity"]
 methods = methods.loc[methods_include]
 
 # select methods excluded from (re-)performing attacks
@@ -111,7 +112,7 @@ for (idx, method) in methods.iterrows():
                 p=2, dim=(-2, -1), keepdim=True
             )
             Y = noise_type(Y_0, noise_level)
-            X = method.reconstr(Y, noise_level)
+            X = method.reconstr(Y, noise_level)            
 
             print(
                 (

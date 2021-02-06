@@ -4,8 +4,8 @@ from data_management import sample_tv_signal
 from operators import Gaussian
 
 
-DATA_PATH = os.path.join("tv_synth_raw_data_spikes")
-RESULTS_PATH = os.path.join("tv_synth_results_spikes")
+DATA_PATH = os.path.join("tv_synth_raw_data")
+RESULTS_PATH = os.path.join("tv_synth_results")
 
 # ----- random seeds -----
 torch_seed = 1
