@@ -36,24 +36,24 @@ X_test, C_test, Y_test = [
 # ----- attack setup -----
 
 # select samples
-sample = 1
-it = 200
+sample = 6
+it = 1
 
 noise_type = noise_gaussian
 
 # select range relative noise
 noise_min = 1e-3
-noise_max = 0.06
+noise_max = 0.35
 noise_steps = 5
 noise_rel_grid = torch.tensor(
     np.logspace(np.log10(noise_min), np.log10(noise_max), num=noise_steps)
 ).float()
-# noise_rel_show = torch.tensor([0.00, 0.005, 0.02, 0.06, 0.12]).float()
+# noise_rel_show = torch.tensor([0.00, 0.005, 0.02, 0.06, 0.12, 0.2, 0.3, 0.35]).float()
 noise_rel_show = torch.tensor([0.005]).float()
-# noise_rel = (
-#     torch.cat([noise_rel_show, noise_rel_grid]).float().unique(sorted=True)
-# )
-noise_rel = noise_rel_show
+noise_rel = (
+    torch.cat([noise_rel_show, noise_rel_grid]).float().unique(sorted=True)
+)
+# noise_rel = noise_rel_show
 
 print(noise_rel)
 
@@ -61,7 +61,7 @@ print(noise_rel)
 err_measure = err_measure_l2
 
 # select reconstruction methods
-methods_include = ["Sparsity"]
+methods_include = ["Sparsity", "Tiramisu EE jit"]
 methods = methods.loc[methods_include]
 
 # select methods excluded from (re-)performing attacks
@@ -110,7 +110,7 @@ for (idx, method) in methods.iterrows():
 
             noise_level = noise_rel[idx_noise] * Y_0.norm(
                 p=2, dim=(-2, -1), keepdim=True
-            )
+            )            
             Y = noise_type(Y_0, noise_level)
             X = method.reconstr(Y, noise_level)            
 
@@ -121,6 +121,9 @@ for (idx, method) in methods.iterrows():
                 ).mean()
             )
 
+            # import pdb; pdb.set_trace()
+            
+            X = X.reshape(X_0.shape)
             results.loc[idx].X_err[idx_noise, ...] = err_measure(X, X_0)
             results.loc[idx].X[idx_noise, ...] = X.cpu()
             results.loc[idx].Y[idx_noise, ...] = Y.cpu()
@@ -228,10 +231,13 @@ if do_plot:
             )
 
     plt.yticks(np.arange(0, 1, step=0.05))
-    plt.ylim((-0.008, 0.165))
+    plt.ylim((-0.008, 0.5))
     ax.set_xticklabels(["{:,.0%}".format(x) for x in ax.get_xticks()])
     ax.set_yticklabels(["{:,.0%}".format(x) for x in ax.get_yticks()])
     plt.legend(loc="upper left", fontsize=12)
+    ax.set_xlabel('noise %')
+    ax.set_ylabel("rel.\\ $\\ell_2$ err."
+    
 
     if save_plot:
         fig.savefig(

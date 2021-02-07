@@ -65,7 +65,7 @@ def l2_error(X, X_ref, relative=False, squared=False):
     err :
         Tensor with individual errors.
 
-    """
+    """    
     if squared:
         err = (X - X_ref).norm(p=2, dim=-1) ** 2
     else:

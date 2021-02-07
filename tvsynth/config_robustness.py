@@ -175,12 +175,14 @@ def _reconstructSparsity(y, noise_level):
 
     # for i in np.arange(1e-6, 1, 0.00001):
     alpha = 10
-    clf = linear_model.Lasso(alpha=alpha, max_iter=50000)
+    # clf = linear_model.Lasso(alpha=alpha, max_iter=50000)    
+    clf = linear_model.LassoCV()    
     clf.fit(A_mat, y)
-    print(clf.coef_.mean())    
+    lamb=clf.alpha_ 
+    print("Result: lambda=",lamb)    
+    print(clf.coef_.mean())        
     
     x = torch.tensor(clf.coef_).cuda().unsqueeze(1)
-
     return x
 
 
