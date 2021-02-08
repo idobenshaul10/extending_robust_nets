@@ -52,6 +52,7 @@ class InvNet(torch.nn.Module, metaclass=ABCMeta):
         inp, tar = batch
         inp = inp.to(self.device)
         tar = tar.to(self.device)
+        import pdb; pdb.set_trace()
         pred = self.forward(inp)
 
         loss = loss_func(pred, tar) / acc_steps

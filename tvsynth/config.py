@@ -1,11 +1,11 @@
 import os
 
 from data_management import sample_tv_signal
-from operators import Gaussian
+from operators import Gaussian, Fourier
 
 
-DATA_PATH = os.path.join("tv_synth_raw_data_spikes")
-RESULTS_PATH = os.path.join("tv_synth_results_spikes")
+DATA_PATH = os.path.join("tv_synth_raw_data_fourier")
+RESULTS_PATH = os.path.join("tv_synth_results_fourier")
 
 # ----- random seeds -----
 torch_seed = 1
@@ -24,12 +24,13 @@ data_params = {  # additional data generation parameters
 data_gen = sample_tv_signal  # data generator function
 
 # ----- measurement configuration -----
-m = 100  # measurement dimension
+# m = 100  # measurement dimension
+m = n
 meas_params = {"seed": matrix_seed}  # additional measurement parameters
-meas_op = Gaussian  # measurement operator
+meas_op = Fourier # measurement operator
 
 set_params = {
-    "num_train": 200000,
+    "num_train": 2000,
     "num_val": 1000,
     "num_test": 1000,
     "path": DATA_PATH,

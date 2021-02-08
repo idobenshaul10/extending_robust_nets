@@ -2,10 +2,10 @@ import numpy as np
 import config  # isort:skip
 import matplotlib.pyplot as plt
 from data_management import load_dataset
-import config_robustness as cfg_rob  # isort:skip
-from config_robustness import methods  # isort:skip
+# import config_robustness as cfg_rob  # isort:skip
+# from config_robustness import methods  # isort:skip
 
-device = cfg_rob.device
+device = "cpu"
 
 X_test, C_test, Y_test = [
     tmp.unsqueeze(-2).to(device)

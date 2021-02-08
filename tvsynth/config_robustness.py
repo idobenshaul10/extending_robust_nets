@@ -18,153 +18,153 @@ from reconstruction_methods import primaldual
 from sklearn import linear_model
 
 
-# ------ setup ----------
+# # ------ setup ----------
 device = torch.device("cuda:0")
 torch.cuda.set_device(0)
 
-# ----- operators -----
+# # ----- operators -----
 OpA = config.meas_op(config.m, config.n, device=device, **config.meas_params)
 OpTVSynth = TVSynthesis(config.n, device=device)
 OpTV = TVAnalysis(config.n, device=device)
 
-# ----- methods --------
+# # ----- methods --------
 methods = pd.DataFrame(columns=["name", "info", "reconstr", "attacker", "net"])
 methods = methods.set_index("name")
 
-noise_ref = noise_gaussian
+# noise_ref = noise_gaussian
 
 
-###################################################################################3
-# ----- set up L1 --------
+# ###################################################################################3
+# # ----- set up L1 --------
 
-# recovery parameters for L1 via primal dual
-OpAW_norm = get_operator_norm(OpA, OpTVSynth)
-rec_params = {
-    "sigma": 1.0 / (OpAW_norm + 1e0),
-    "tau": 1.0 / (OpAW_norm + 1e0),
-    "theta": 1e0,
-}
-
-
-# the actual reconstruction method
-def _reconstructL1(y, noise_level):
-    x, _, _ = primaldual(
-        y,
-        OpA,
-        OpTVSynth,
-        iter=50000,
-        c0=torch.zeros(config.n,).to(device),
-        y0=torch.zeros(config.m,).to(device),
-        eta=noise_level,
-        silent=False,
-        **rec_params
-    )    
-    return x
+# # recovery parameters for L1 via primal dual
+# OpAW_norm = get_operator_norm(OpA, OpTVSynth)
+# rec_params = {
+#     "sigma": 1.0 / (OpAW_norm + 1e0),
+#     "tau": 1.0 / (OpAW_norm + 1e0),
+#     "theta": 1e0,
+# }
 
 
-# the reconstruction method used for the L1 attack
-# (less iterations due to high computational costs)
-def _reconstructL1_adv(y, noise_level, c0, y0):
-    x, _, _ = primaldual(
-        y,
-        OpA,
-        OpTVSynth,
-        iter=2000,
-        c0=c0,
-        y0=y0,
-        eta=noise_level,
-        silent=True,
-        **rec_params
-    )
-    return x
+# # the actual reconstruction method
+# def _reconstructL1(y, noise_level):
+#     x, _, _ = primaldual(
+#         y,
+#         OpA,
+#         OpTVSynth,
+#         iter=50000,
+#         c0=torch.zeros(config.n,).to(device),
+#         y0=torch.zeros(config.m,).to(device),
+#         eta=noise_level,
+#         silent=False,
+#         **rec_params
+#     )    
+#     return x
 
 
-# attack function for L1
-def _attackerL1(x0, noise_rel, yadv_init=None):
-
-    # compute noiseless measurements
-    y0 = OpA(x0)
-
-    if noise_rel == 0.0:
-        return y0, y0, y0
-
-    # compute absolute noise levels
-    noise_level = noise_rel * y0.norm(p=2, dim=(-2, -1), keepdim=True)
-    # compute noisy measurements for reference
-    yref = noise_ref(OpA(x0), noise_level)
-    # attack parameters
-    adv_init_fac = 3.0 * noise_level
-    adv_param = {
-        "codomain_dist": torch.nn.MSELoss(reduction="sum"),
-        "domain_dist": None,
-        "weights": (1.0, 1.0),
-        "optimizer": PAdam,
-        "projs": [lambda y: proj_l2_ball(y, y0, noise_level)],
-        "iter": 30,
-        "stepsize": 5e0,
-    }
-    # compute good start values for _reconstructL1_adv
-    _, c0_adv, y0_adv = primaldual(
-        y0,
-        OpA,
-        OpTVSynth,
-        iter=50000,
-        c0=torch.zeros(config.n,).to(device),
-        y0=torch.zeros(config.m,).to(device),
-        eta=noise_level,
-        silent=True,
-        **rec_params
-    )
-    # compute initialization
-    yadv = y0.clone().detach() + (
-        adv_init_fac / np.sqrt(np.prod(y0.shape[-2:]))
-    ) * torch.randn_like(y0)
-
-    if yadv_init is not None:
-        yadv[0 : yadv_init.shape[0], ...] = yadv_init.clone().detach()
-
-    yadv = yadv.requires_grad_(True)
-
-    # perform attack
-    yadv = untargeted_attack(
-        lambda y: _reconstructL1_adv(y, noise_level, c0_adv, y0_adv),
-        yadv,
-        y0,
-        t_out_ref=x0,
-        **adv_param
-    ).detach()
-
-    return yadv, yref, y0
+# # the reconstruction method used for the L1 attack
+# # (less iterations due to high computational costs)
+# def _reconstructL1_adv(y, noise_level, c0, y0):
+#     x, _, _ = primaldual(
+#         y,
+#         OpA,
+#         OpTVSynth,
+#         iter=2000,
+#         c0=c0,
+#         y0=y0,
+#         eta=noise_level,
+#         silent=True,
+#         **rec_params
+#     )
+#     return x
 
 
-methods.loc["L1"] = {
-    "info": {
-        "name_disp": "TV$[\\eta]$",
-        "name_save": "tv",
-        "plt_color": "#e8000b",
-        "plt_marker": "o",
-        "plt_linestyle": "-",
-        "plt_linewidth": 2.75,
-    },
-    "reconstr": _reconstructL1,
-    "attacker": lambda x0, noise_rel, yadv_init=None: _attackerL1(
-        x0, noise_rel, yadv_init=yadv_init
-    ),
-    "net": None,
-}
-methods.loc["L1", "net"] = None
+# # attack function for L1
+# def _attackerL1(x0, noise_rel, yadv_init=None):
+
+#     # compute noiseless measurements
+#     y0 = OpA(x0)
+
+#     if noise_rel == 0.0:
+#         return y0, y0, y0
+
+#     # compute absolute noise levels
+#     noise_level = noise_rel * y0.norm(p=2, dim=(-2, -1), keepdim=True)
+#     # compute noisy measurements for reference
+#     yref = noise_ref(OpA(x0), noise_level)
+#     # attack parameters
+#     adv_init_fac = 3.0 * noise_level
+#     adv_param = {
+#         "codomain_dist": torch.nn.MSELoss(reduction="sum"),
+#         "domain_dist": None,
+#         "weights": (1.0, 1.0),
+#         "optimizer": PAdam,
+#         "projs": [lambda y: proj_l2_ball(y, y0, noise_level)],
+#         "iter": 30,
+#         "stepsize": 5e0,
+#     }
+#     # compute good start values for _reconstructL1_adv
+#     _, c0_adv, y0_adv = primaldual(
+#         y0,
+#         OpA,
+#         OpTVSynth,
+#         iter=50000,
+#         c0=torch.zeros(config.n,).to(device),
+#         y0=torch.zeros(config.m,).to(device),
+#         eta=noise_level,
+#         silent=True,
+#         **rec_params
+#     )
+#     # compute initialization
+#     yadv = y0.clone().detach() + (
+#         adv_init_fac / np.sqrt(np.prod(y0.shape[-2:]))
+#     ) * torch.randn_like(y0)
+
+#     if yadv_init is not None:
+#         yadv[0 : yadv_init.shape[0], ...] = yadv_init.clone().detach()
+
+#     yadv = yadv.requires_grad_(True)
+
+#     # perform attack
+#     yadv = untargeted_attack(
+#         lambda y: _reconstructL1_adv(y, noise_level, c0_adv, y0_adv),
+#         yadv,
+#         y0,
+#         t_out_ref=x0,
+#         **adv_param
+#     ).detach()
+
+#     return yadv, yref, y0
+
+
+# methods.loc["L1"] = {
+#     "info": {
+#         "name_disp": "TV$[\\eta]$",
+#         "name_save": "tv",
+#         "plt_color": "#e8000b",
+#         "plt_marker": "o",
+#         "plt_linestyle": "-",
+#         "plt_linewidth": 2.75,
+#     },
+#     "reconstr": _reconstructL1,
+#     "attacker": lambda x0, noise_rel, yadv_init=None: _attackerL1(
+#         x0, noise_rel, yadv_init=yadv_init
+#     ),
+#     "net": None,
+# }
+# methods.loc["L1", "net"] = None
 
 ################################################################################
 ###################################################################################3
 # ----- set up Sparstiy --------
 
 # recovery parameters for L1 via primal dual
-OpAW_norm = get_operator_norm(OpA, OpTVSynth)
-rec_params = {
-    "sigma": 1.0 / (OpAW_norm + 1e0),
-    "tau": 1.0 / (OpAW_norm + 1e0),
-    "theta": 1e0,
-}
+# OpAW_norm = get_operator_norm(OpA, OpTVSynth)
+# rec_params = {
+#     "sigma": 1.0 / (OpAW_norm + 1e0),
+#     "tau": 1.0 / (OpAW_norm + 1e0),
+#     "theta": 1e0,
+# }
 
 
 # the actual reconstruction method
@@ -177,10 +177,10 @@ def _reconstructSparsity(y, noise_level):
     alpha = 10
     # clf = linear_model.Lasso(alpha=alpha, max_iter=50000)    
     clf = linear_model.LassoCV()    
-    clf.fit(A_mat, y)
+    clf.fit(A_mat, y.squeeze())
     lamb=clf.alpha_ 
-    print("Result: lambda=",lamb)    
-    print(clf.coef_.mean())        
+    # print("Result: lambda=",lamb)    
+    # print(clf.coef_.mean())        
     
     x = torch.tensor(clf.coef_).cuda().unsqueeze(1)
     return x
@@ -205,12 +205,12 @@ def _reconstructL1_adv(y, noise_level, c0, y0):
 methods.loc["Sparsity"] = {
     "info": {
         "name_disp": "Sparsity",
-        "name_save": "tv",
-        "plt_color": "#e8000b",
+        "name_save": "Sparsity",
+        "plt_color": "#023eff",
         "plt_marker": "o",
         "plt_linestyle": "-",
-        "plt_linewidth": 2.75,
-    },
+        "plt_linewidth": None,
+    },    
     "reconstr": _reconstructSparsity,
     "attacker": lambda x0, noise_rel, yadv_init=None: _attackerL1(
         x0, noise_rel, yadv_init=yadv_init

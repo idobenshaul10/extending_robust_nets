@@ -80,7 +80,7 @@ def create_dataset(m, n, measure, set_params, generator, gen_params):
         C_test[idx, :] = c
 
     Y_train = torch.zeros(N_train, m)
-    for idx in tqdm(range(N_train), desc="computing training measurements"):
+    for idx in tqdm(range(N_train), desc="computing training measurements"):        
         Y_train[idx, :] = measure(X_train[idx, ...])
 
     Y_val = torch.zeros(N_val, m)
@@ -216,8 +216,8 @@ def sample_tv_signal(
     )  # minimal height    
     
     
-    # coefs[pos + 1] = (coefs[pos] * -1)    
-    # coefs[-1] = coefs.mean()    
+    # coefs[pos + 1] = (coefs[pos] * -1)
+    # coefs[-1] = coefs.mean()
 
     x_restr = TVSynthesis(n_restr)(coefs)    
     
@@ -232,8 +232,6 @@ def sample_tv_signal(
 
     # real coefs
     coefs = TVAnalysis(n)(x)
-    # import pdb; pdb.set_trace()
-
     return x, coefs
 
 

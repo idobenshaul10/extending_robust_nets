@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 import torch
+import skimage.transform
+from scipy.fft import fft, ifft
 
 
 # ----- Utilities -----
@@ -121,7 +123,8 @@ def noise_bernoulli(y, eta, n_seed=None, t_seed=None, p=1e-2):
 def get_tikhonov_matrix(OpA, OpW, reg_fac):
     """ Generalized Tikhonov regularized inversion. """
     A_mat = OpA.get_matrix().cpu().numpy()
-    W_mat = OpW.get_matrix().cpu().numpy()
+    W_mat = OpW.get_matrix().cpu().numpy()    
+
     W_mat = W_mat[0:-1, :]
     A_tikh = np.matmul(
         np.linalg.pinv(
@@ -353,8 +356,68 @@ class LinearOperator(ABC):
         device = self.device if hasattr(self, "device") else None
         return self.dot(torch.eye(self.n, device=device)).T
 
+def prep_fft_channel(x):
+    """ Rotates complex image dimension from channel to last position. """
+    x = torch.reshape(x, x.shape[:-3] + (x.shape[-3] // 2, 2) + x.shape[-2:])
+    return x.permute(*range(x.ndim - 3), -2, -1, -3)
 
-# ----- Measurement Operators -----
+
+def unprep_fft_channel(x):
+    """ Rotates complex image dimension from last to channel position. """
+    x = x.permute(*range(x.ndim - 3), -1, -3, -2)
+    return torch.reshape(
+        x, x.shape[:-4] + (x.shape[-4] * x.shape[-3],) + x.shape[-2:]
+    )
+
+def im2vec(x, dims=(-2, -1)):
+    """ Flattens last two dimensions of an image tensor to a vector. """
+    return torch.flatten(x, *dims)
+
+def vec2im(x, n):
+    """ Unflattens the last dimension of a vector to two image dimensions. """
+    return x.view(*x.shape[:-1], *n)
+
+class Fourier(LinearOperator):
+    """ 1D discrete Fourier transform.
+
+    Implements the complex operator C^(n1, n2) -> C^m
+    appling the (subsampled) Fourier transform.
+    The adjoint is the conjugate transpose. The inverse is the same as adjoint.
+
+
+    Parameters
+    ----------
+    mask : torch.Tensor
+        The subsampling mask for the Fourier transform.
+
+    """
+
+    def __init__(self, m, n, seed=None, device=None):     
+        super().__init__(m, n)
+        self.seed = seed
+        self.device = device
+
+        if seed is not None:
+            torch.manual_seed(seed)
+
+    def dot(self, x):
+        y = fft(x.cpu().numpy())
+        # y = np.concatenate((y.real, y.imag))
+        y = torch.tensor(y)
+        return y
+
+    def adj(self, y):
+        y = y.cpu().numpy()
+        x = ifft(y)
+        # x = ifft(y.real + 1j * y.imag)
+        x = torch.tensor(x)
+        return x
+        
+
+    def inv(self, y):
+        """ Pseudo-inverse a.k.a. zero-filled IFFT. """
+        return self.adj(y)    
+
 
 
 class Gaussian(LinearOperator):
@@ -538,8 +601,8 @@ class TVSynthesis(LinearOperator):
         self._t_A_adj_func = wrap_operator(self.t_A.T)
 
     def dot(self, x):        
-        result = self._t_A_func(x)        
-        # result = x
+        # result = self._t_A_func(x)        
+        result = x
         return result
 
     def adj(self, y):

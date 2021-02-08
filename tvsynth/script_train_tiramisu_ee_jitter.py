@@ -24,9 +24,12 @@ OpTV = TVAnalysis(config.n, device=device)
 # ----- build linear inverter  ------
 reg_fac = 2e-2
 
-inverter = torch.nn.Linear(OpA.m, OpA.n, bias=False)
+inverter = torch.nn.Linear(OpA.m, 2*OpA.n, bias=False)
 inverter.weight.requires_grad = True
-inverter.weight.data = get_tikhonov_matrix(OpA, OpTV, reg_fac)
+tikh_result = get_tikhonov_matrix(OpA, OpTV, reg_fac)
+
+inverter.weight.data = torch.cat((tikh_result.real, tikh_result.imag))
+import pdb; pdb.set_trace()
 
 # ----- network configuration -----
 subnet_params = {
