@@ -16,6 +16,7 @@ from operators import noise_gaussian
 import config  # isort:skip
 import config_robustness as cfg_rob  # isort:skip
 from config_robustness import methods  # isort:skip
+from tqdm import tqdm
 
 # ------ general setup ----------
 device = cfg_rob.device
@@ -35,19 +36,22 @@ X_test, C_test, Y_test = [
 # ----- attack setup -----
 
 # select samples
-samples = tuple(range(50))
-it = 200
+
+samples = tuple(range(1000))
+it = 1
 
 noise_type = noise_gaussian
 
 # select range relative noise
-noise_rel = torch.tensor([0.00, 0.001, 0.005, 0.01, 0.02, 0.04, 0.06])
+# noise_rel = torch.tensor([0.00, 0.001, 0.005, 0.01, 0.02, 0.04, 0.06])
+noise_rel = torch.tensor([0.00, 0.1, 0.2, 0.3, 0.5])
 
 # select measure for reconstruction error
 err_measure = err_measure_l2
 
 # select reconstruction methods
-methods_include = ["Tiramisu EE jit", "L1"]
+# methods_include = ["Tiramisu EE jit", "L1"]
+methods_include = ["Sparsity", "Tiramisu EE jit"]
 methods = methods.loc[methods_include]
 
 # select methods excluded from (re-)performing attacks
@@ -79,21 +83,21 @@ for (idx, method) in methods.iterrows():
         s_len = X_0.shape[0]
         results.loc[idx].X_err = torch.zeros(len(noise_rel), s_len)
 
-        for s in range(s_len):
-            print("Sample: {}/{}".format(s + 1, s_len))
+        for s in tqdm(range(s_len)):
+            # print("Sample: {}/{}".format(s + 1, s_len))
             X_0_s = X_0[s : s + 1, ...].repeat(it, *((X_0.ndim - 1) * (1,)))
             Y_0_s = Y_0[s : s + 1, ...].repeat(it, *((Y_0.ndim - 1) * (1,)))
 
             for idx_noise in range(len(noise_rel)):
-                print(
-                    "Method: {}; Noise rel {}/{} (= {:1.3f})".format(
-                        idx,
-                        idx_noise + 1,
-                        len(noise_rel),
-                        noise_rel[idx_noise].item(),
-                    ),
-                    flush=True,
-                )
+                # print(
+                #     "Method: {}; Noise rel {}/{} (= {:1.3f})".format(
+                #         idx,
+                #         idx_noise + 1,
+                #         len(noise_rel),
+                #         noise_rel[idx_noise].item(),
+                #     ),
+                #     flush=True,
+                # )
 
                 noise_level = noise_rel[idx_noise] * Y_0_s.norm(
                     p=2, dim=(-2, -1), keepdim=True
@@ -101,15 +105,19 @@ for (idx, method) in methods.iterrows():
                 Y = noise_type(Y_0_s, noise_level)
                 X = method.reconstr(Y, noise_level)
 
-                print(
-                    (
-                        (Y - Y_0_s).norm(p=2, dim=(-2, -1))
-                        / (Y_0_s).norm(p=2, dim=(-2, -1))
-                    ).mean()
-                )
+                # print(
+                #     (
+                #         (Y - Y_0_s).norm(p=2, dim=(-2, -1))
+                #         / (Y_0_s).norm(p=2, dim=(-2, -1))
+                #     ).mean()
+                # )
 
+                if method.name == "Sparsity":
+                    cur_X = X.reshape(X_0_s.shape)                
+                else:
+                    cur_X = X
                 results.loc[idx].X_err[idx_noise, s] = err_measure(
-                    X, X_0_s
+                    cur_X, X_0_s
                 ).mean()
 
 # save results
@@ -153,7 +161,7 @@ if do_plot:
             )
 
     plt.yticks(np.arange(0, 1, step=0.05))
-    plt.ylim((-0.01, 0.21))
+    plt.ylim((-0.01, 1.0))
     ax.set_xticklabels(["{:,.0%}".format(x) for x in ax.get_xticks()])
     ax.set_yticklabels(["{:,.0%}".format(x) for x in ax.get_yticks()])
     plt.legend(loc="upper left", fontsize=12)
