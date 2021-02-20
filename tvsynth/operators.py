@@ -402,8 +402,9 @@ class Fourier(LinearOperator):
 
     def dot(self, x):
         y = fft(x.cpu().numpy())
-        # y = np.concatenate((y.real, y.imag))
+        # y = np.concatenate((y.real, y.imag))        
         y = torch.tensor(y)
+
         return y
 
     def adj(self, y):

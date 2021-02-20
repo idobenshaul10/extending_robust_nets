@@ -75,22 +75,22 @@ def create_dataset(m, n, measure, set_params, generator, gen_params):
     X_test = torch.zeros(N_test, n)
     C_test = torch.zeros(N_test, n)
     for idx in tqdm(range(N_test), desc="generating test signals"):
-        x, c = _get_signal()
+        x, c = _get_signal()        
         X_test[idx, :] = x
         C_test[idx, :] = c
 
-    Y_train = torch.zeros(N_train, m)
+    Y_train = torch.zeros(N_train, m, dtype=torch.complex64)
     for idx in tqdm(range(N_train), desc="computing training measurements"):        
-        Y_train[idx, :] = measure(X_train[idx, ...])
+        Y_train[idx, :] = measure(X_train[idx, ...])        
 
-    Y_val = torch.zeros(N_val, m)
+    Y_val = torch.zeros(N_val, m, dtype=torch.complex64)
     for idx in tqdm(range(N_val), desc="computing validation measurements"):
         Y_val[idx, :] = measure(X_val[idx, ...])
 
-    Y_test = torch.zeros(N_test, m)
+    Y_test = torch.zeros(N_test, m, dtype=torch.complex64)
     for idx in tqdm(range(N_test), desc="computing test measurements"):
         Y_test[idx, :] = measure(X_test[idx, ...])
-
+    
     os.makedirs(set_params["path"], exist_ok=True)
     torch.save(X_train, os.path.join(set_params["path"], "train_x.pt"))
     torch.save(C_train, os.path.join(set_params["path"], "train_c.pt"))
@@ -126,6 +126,9 @@ def load_dataset(path, subset="train"):
     X = torch.load(os.path.join(path, "{}_x.pt".format(subset)))
     C = torch.load(os.path.join(path, "{}_c.pt".format(subset)))
     Y = torch.load(os.path.join(path, "{}_y.pt".format(subset)))
+    if Y.dtype == torch.complex64:
+        Y = torch.cat((Y.real, Y.imag), dim=1)
+    
     return X, C, Y
 
 
@@ -262,7 +265,6 @@ class Jitter(object):
 # ---- run data generation -----
 if __name__ == "__main__":
     import config
-
     OpA = config.meas_op(config.m, config.n, **config.meas_params)
     np.random.seed(config.numpy_seed)
     torch.manual_seed(config.torch_seed)

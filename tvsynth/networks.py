@@ -52,7 +52,7 @@ class InvNet(torch.nn.Module, metaclass=ABCMeta):
         inp, tar = batch
         inp = inp.to(self.device)
         tar = tar.to(self.device)
-        import pdb; pdb.set_trace()
+        
         pred = self.forward(inp)
 
         loss = loss_func(pred, tar) / acc_steps
@@ -180,7 +180,7 @@ class InvNet(torch.nn.Module, metaclass=ABCMeta):
         )
 
         inp_train, tar_train = train_data
-        inp_val, tar_val = val_data
+        inp_val, tar_val = val_data        
 
         for epoch in range(num_epochs):
             permutation = torch.randperm(inp_train.shape[0])
@@ -282,7 +282,7 @@ class IterativeNet(InvNet):
             ]
         )
 
-    def forward(self, inp):
+    def forward(self, inp):        
         xinv = self.inverter(inp)
         for it in range(self.num_iter):
             # subnet step

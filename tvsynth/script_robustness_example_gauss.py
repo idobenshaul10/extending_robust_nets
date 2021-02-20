@@ -24,7 +24,7 @@ device = cfg_rob.device
 save_path = os.path.join(config.RESULTS_PATH, "attacks")
 save_results = os.path.join(save_path, "example_S6_gauss.pkl")
 
-do_plot = False
+do_plot = True
 save_plot = False
 
 # ----- data prep -----
@@ -36,7 +36,7 @@ X_test, C_test, Y_test = [
 # ----- attack setup -----
 
 # select samples
-sample = 2
+sample = 12
 it = 1
 
 noise_type = noise_gaussian
@@ -44,7 +44,7 @@ noise_type = noise_gaussian
 # select range relative noise
 noise_min = 1e-3
 noise_max = 0.5
-noise_steps = 5
+noise_steps = 20
 noise_rel_grid = torch.tensor(
 	np.logspace(np.log10(noise_min), np.log10(noise_max), num=noise_steps)
 ).float()
@@ -53,7 +53,7 @@ noise_rel_show = torch.tensor([0.00, 0.2, 0.5]).float()
 noise_rel = (
 	torch.cat([noise_rel_show, noise_rel_grid]).float().unique(sorted=True)
 )
-noise_rel = noise_rel_show
+# noise_rel = noise_rel_show
 
 print(noise_rel)
 

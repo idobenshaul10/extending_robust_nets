@@ -13,6 +13,7 @@ X_test, C_test, Y_test = [
 ]
 
 for i in range(len(Y_test)):
+	import pdb; pdb.set_trace()
 	# import pdb; pdb.set_trace()
 	fig1, ax1 = plt.subplots()
 	ax1.plot(np.arange(len(X_test[i][0])), X_test[i][0].cpu())

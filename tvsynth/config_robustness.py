@@ -23,7 +23,7 @@ device = torch.device("cuda:0")
 torch.cuda.set_device(0)
 
 # # ----- operators -----
-OpA = config.meas_op(config.m, config.n, device=device, **config.meas_params)
+OpA = config.meas_op(2*config.m, config.n, device=device, **config.meas_params)
 OpTVSynth = TVSynthesis(config.n, device=device)
 OpTV = TVAnalysis(config.n, device=device)
 
@@ -168,15 +168,18 @@ methods = methods.set_index("name")
 
 
 # the actual reconstruction method
-def _reconstructSparsity(y, noise_level):   
+def _reconstructSparsity(y, noise_level):    
+    # A_mat = OpA.t_A.cpu()    
+    A_mat = torch.tensor(np.fft.fft(np.eye(OpA.n)))
+    A_mat = torch.cat((A_mat.real, A_mat.imag), dim=0)
     
-    A_mat = OpA.t_A.cpu()
     y = y.reshape(A_mat.shape[0], -1).cpu()
 
     # for i in np.arange(1e-6, 1, 0.00001):
-    alpha = 10
-    # clf = linear_model.Lasso(alpha=alpha, max_iter=50000)    
-    clf = linear_model.LassoCV()    
+    # alpha = 10
+    # clf = linear_model.Lasso(alpha=alpha, max_iter=50000)
+
+    clf = linear_model.LassoCV()
     clf.fit(A_mat, y.squeeze())
     lamb=clf.alpha_ 
     # print("Result: lambda=",lamb)    
@@ -218,8 +221,6 @@ methods.loc["Sparsity"] = {
     "net": None,
 }
 methods.loc["Sparsity", "net"] = None
-
-
 
 
 # ----- set up net attacks --------
@@ -279,14 +280,15 @@ def _attackerNet(x0, noise_rel, net, yadv_init=None):
 
 # create a fresh tikhonov inverter layer
 def _get_inverter_tikh(reg_fac=2e-2):
-    inverter_tikh = torch.nn.Linear(OpA.m, OpA.n, bias=False)
-    inverter_tikh.weight.requires_grad = False
-    inverter_tikh.weight.data = get_tikhonov_matrix(OpA, OpTV, reg_fac)
+    inverter_tikh = torch.nn.Linear(OpA.m, OpA.n, bias=False)    
+    inverter_tikh.weight.requires_grad = False    
+    tikh_result = get_tikhonov_matrix(OpA, OpTV, reg_fac)    
+    inverter_tikh.weight.data = torch.cat((tikh_result.real, tikh_result.imag), dim=1)
     return inverter_tikh
 
 
 # create a net and load weights from file
-def _load_net(path, subnet, subnet_params, it_net_params):
+def _load_net(path, subnet, subnet_params, it_net_params):    
     subnet = subnet(**subnet_params).to(device)
     it_net = IterativeNet(subnet, **it_net_params).to(device)
     it_net.load_state_dict(torch.load(path, map_location=torch.device(device)))
@@ -460,7 +462,6 @@ tiramisu_params = {
 #     ),
 # )
 
-
 _append_net(
     "Tiramisu EE jit",
     {
@@ -472,7 +473,7 @@ _append_net(
         "plt_linewidth": 2.75,
     },
     _load_net(
-        "tv_synth_results_spikes/tiramisu_ee_jitter_train_phase_2/model_weights.pt",
+        "tv_synth_results_fourier/tiramisu_ee_jitter_train_phase_2/model_weights.pt",
         Tiramisu,
         tiramisu_params,
         {
