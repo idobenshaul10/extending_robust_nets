@@ -12,14 +12,13 @@ X_test, C_test, Y_test = [
     for tmp in load_dataset(config.set_params["path"], subset="test")
 ]
 
-for i in range(len(Y_test)):
-	import pdb; pdb.set_trace()
-	# import pdb; pdb.set_trace()
+for i in range(len(Y_test)):	
 	fig1, ax1 = plt.subplots()
 	ax1.plot(np.arange(len(X_test[i][0])), X_test[i][0].cpu())
-
 	
 	fig2, ax2 = plt.subplots()
-	ax2.plot(np.arange(len(Y_test[i][0])), Y_test[i][0].cpu())	
+	# ax2.plot(np.arange(len(Y_test[i][0])), Y_test[i][0].cpu())
+	ax2.plot(np.arange(256), Y_test[i][0][:256], 'b-', np.arange(256), Y_test[i][0][256:], 'r--')
+	plt.legend(('real', 'imaginary'))
 	plt.show()
 	plt.clf()
