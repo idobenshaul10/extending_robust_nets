@@ -4,8 +4,8 @@ from data_management import sample_tv_signal
 from operators import Gaussian, Fourier
 
 
-DATA_PATH = os.path.join("tv_synth_raw_data_fourier_dense")
-RESULTS_PATH = os.path.join("tv_synth_results_fourier_dense")
+DATA_PATH = os.path.join("tv_synth_raw_data_fourier_hard")
+RESULTS_PATH = os.path.join("tv_synth_results_fourier_hard")
 
 # ----- random seeds -----
 torch_seed = 1
@@ -16,8 +16,8 @@ matrix_seed = 3
 n = 256  # signal dimension
 data_params = {  # additional data generation parameters
     "j_min": 5,
-    "j_max": 20,
-    "min_dist": 8,
+    "j_max": 50,
+    "min_dist": 2,
     "bound": 10,
     "min_height": 0.5,
 }

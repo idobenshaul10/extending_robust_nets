@@ -10,6 +10,7 @@ from operators import TVAnalysis, get_tikhonov_matrix
 
 # --- load configuration -----
 import config  # isort:skip
+from operators import remove_high_frequencies
 
 # ----- general setup -----
 mpl.use("agg")
@@ -60,7 +61,6 @@ mse_loss = torch.nn.MSELoss(reduction="sum")
 def loss_func(pred, tar):
     return mse_loss(pred, tar) / pred.shape[0]
 
-
 train_phases = 2
 train_params = {
     "num_epochs": [200, 50],
@@ -100,6 +100,8 @@ X_val, C_val, Y_val = [
     for tmp in load_dataset(config.set_params["path"], subset="val")
 ]
 
+Y_train = remove_high_frequencies(Y_train)
+Y_val = remove_high_frequencies(Y_val)
 
 # ------ save hyperparameters -------
 os.makedirs(train_params["save_path"][-1], exist_ok=True)

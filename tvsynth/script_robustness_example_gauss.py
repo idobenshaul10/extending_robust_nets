@@ -16,6 +16,7 @@ from operators import noise_gaussian
 import config  # isort:skip
 import config_robustness as cfg_rob  # isort:skip
 from config_robustness import methods  # isort:skip
+from operators import remove_high_frequencies
 
 # ------ general setup ----------
 
@@ -25,7 +26,7 @@ save_path = os.path.join(config.RESULTS_PATH, "attacks")
 save_results = os.path.join(save_path, "example_S6_gauss.pkl")
 
 do_plot = True
-save_plot = False
+save_plot = True
 
 # ----- data prep -----
 X_test, C_test, Y_test = [
@@ -33,10 +34,13 @@ X_test, C_test, Y_test = [
 	for tmp in load_dataset(config.set_params["path"], subset="test")
 ]
 
+Y_test = remove_high_frequencies(Y_test, m=100)
+
+
 # ----- attack setup -----
 
 # select samples
-sample = 12
+sample = 0
 it = 1
 
 noise_type = noise_gaussian
@@ -48,12 +52,12 @@ noise_steps = 20
 noise_rel_grid = torch.tensor(
 	np.logspace(np.log10(noise_min), np.log10(noise_max), num=noise_steps)
 ).float()
-noise_rel_show = torch.tensor([0.00, 0.2, 0.5]).float()
-# noise_rel_show = torch.tensor([0.001, 0.005, 0.02]).float()
-noise_rel = (
-	torch.cat([noise_rel_show, noise_rel_grid]).float().unique(sorted=True)
-)
-# noise_rel = noise_rel_show
+# noise_rel_show = torch.tensor([0.00]).float()
+noise_rel_show = torch.tensor([0.00, 0.05, 0.1]).float()
+# noise_rel = (
+# 	torch.cat([noise_rel_show, noise_rel_grid]).float().unique(sorted=True)
+# )
+noise_rel = noise_rel_show
 
 print(noise_rel)
 
@@ -61,8 +65,8 @@ print(noise_rel)
 err_measure = err_measure_l2
 
 # select reconstruction methods
-# methods_include = ["L1"]
-methods_include = ["Sparsity", "Tiramisu EE jit"]
+# methods_include = ["Sparsity"]
+methods_include = ["Tiramisu EE jit"]
 
 methods = methods.loc[methods_include]
 
@@ -182,8 +186,8 @@ if do_plot:
 			axins.plot(X_0[0, 0, ...], "--", color="black")
 			axins.plot(X_cur[0, 0, ...], "-", color=method.info["plt_color"])
 
-			axins.set_xlim(200, 230)
-			axins.set_ylim(0.2, 0.6)
+			axins.set_xlim(220, 230)
+			axins.set_ylim(0.8, 1.2)
 			axins.set_xticks([])
 			axins.set_yticks([])
 			ax.indicate_inset_zoom(axins)

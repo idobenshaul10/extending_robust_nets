@@ -473,7 +473,7 @@ _append_net(
         "plt_linewidth": 2.75,
     },
     _load_net(
-        "tv_synth_results_fourier/tiramisu_ee_jitter_train_phase_2/model_weights.pt",
+        "tv_synth_results_fourier_hard/tiramisu_ee_jitter_train_phase_2/model_weights.pt",
         Tiramisu,
         tiramisu_params,
         {

@@ -9,6 +9,22 @@ from scipy.fft import fft, ifft
 # ----- Utilities -----
 
 
+def remove_high_frequencies(Y, m=100, base=256):
+    # Removing High Frequencies
+    Y[:, :, (m//2):128] = 0.
+    Y[:, :, 128+(m//2):256] = 0.
+
+    Y[:, :, base+(m//2):base+128] = 0.
+    Y[:, :, base+128+(m//2):base+256] = 0.
+
+    # Removing Low Frequencies
+    # Y_test[:, :, 0:128-(m//2)] = 0.
+    # Y_test[:, :, 128:256-(m//2)] = 0.
+
+    # Y_test[:, :, base:base+128-(m//2)] = 0.
+    # Y_test[:, :, base+128:base+256-(m//2)] = 0.
+    return Y
+
 def get_operator_norm(*ops):
     """ Computes the l2-operator norm of a product of linear operators. """
     if all([hasattr(op, "get_matrix") for op in ops]):

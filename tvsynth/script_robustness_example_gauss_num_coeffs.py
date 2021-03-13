@@ -32,27 +32,20 @@ X_test, C_test, Y_test = [
     for tmp in load_dataset(config.set_params["path"], subset="test")
 ]
 
-Y_test = remove_high_frequencies(Y_test, m=100)
 # ----- attack setup -----
 
 # select samples
-# samples = tuple(range(10))
-samples = tuple(range(Y_test.shape[0]))
 
+samples = tuple(range(1))
+# samples = tuple(range(1000))
 it = 1
 
 noise_type = noise_gaussian
+noise_rel = torch.tensor([0.0, 0.05, 0.1])
 
-# select range relative noise
-# noise_rel = torch.tensor([0.00, 0.001, 0.005, 0.01, 0.02, 0.04, 0.06])
-
-noise_rel = torch.tensor(np.arange(0.0, 0.6, 0.1))
-
-# select measure for reconstruction error
 err_measure = err_measure_l2
 
 # select reconstruction methods
-# methods_include = ["Sparsity"]
 methods_include = ["Tiramisu EE jit"]
 methods = methods.loc[methods_include]
 
@@ -63,7 +56,7 @@ methods_no_calc = []
 
 # select samples
 X_0 = X_test[samples, ...]
-Y_0 = Y_test[samples, ...]
+Y_start = Y_test[samples, ...]
 
 # create result table
 results = pd.DataFrame(columns=["name", "X_err"])
@@ -78,35 +71,38 @@ if os.path.isfile(save_results):
 else:
     results_save = results
 
+
+# num_coefs_options = list(np.arange(80, 95, 5))
+# num_coefs_options = list(np.arange(80, 115, 5))
+num_coefs_options = [100, 110, 200]
+
 # perform attacks
 for (idx, method) in methods.iterrows():
     if idx not in methods_no_calc:
 
         s_len = X_0.shape[0]
-        results.loc[idx].X_err = torch.zeros(len(noise_rel), s_len)
+        results.loc[idx].X_err = torch.zeros(len(num_coefs_options), s_len)
 
-        for s in tqdm(range(s_len)):
-            # print("Sample: {}/{}".format(s + 1, s_len))
-            X_0_s = X_0[s : s + 1, ...].repeat(it, *((X_0.ndim - 1) * (1,)))
-            Y_0_s = Y_0[s : s + 1, ...].repeat(it, *((Y_0.ndim - 1) * (1,)))
+        for idx_noise, num_coefs in enumerate(num_coefs_options):            
+            Y_0 = remove_high_frequencies(Y_start, m=num_coefs)
 
-            for idx_noise in range(len(noise_rel)):                
-                noise_level = noise_rel[idx_noise] * Y_0_s.norm(
+            for s in tqdm(range(s_len)):
+                # print("Sample: {}/{}".format(s + 1, s_len))
+                X_0_s = X_0[s : s + 1, ...].repeat(it, *((X_0.ndim - 1) * (1,)))
+                Y_0_s = Y_0[s : s + 1, ...].repeat(it, *((Y_0.ndim - 1) * (1,)))
+
+                noise_level = 0 * Y_0_s.norm(
                     p=2, dim=(-2, -1), keepdim=True
                 )
-                
                 Y = noise_type(Y_0_s, noise_level)
-                X = method.reconstr(Y, noise_level)                
+                X = method.reconstr(Y, noise_level)            
 
                 if method.name == "Sparsity":
-                    cur_X = X.reshape(X_0_s.shape)                
-                else:
+                    cur_X = X.reshape(X_0_s.shape)               
+                else:   
                     cur_X = X
-
-                results.loc[idx].X_err[idx_noise, s] = err_measure(
-                    cur_X, X_0_s
-                ).mean()
-                
+                err_result = err_measure(cur_X, X_0_s).mean()                
+                results.loc[idx].X_err[idx_noise, s] = err_result
 
 # save results
 for idx in results.index:
@@ -127,11 +123,12 @@ if do_plot:
 
     for (idx, method) in methods.iterrows():
 
+        import pdb; pdb.set_trace()
         err_mean = results.loc[idx].X_err[:, :].mean(dim=-1)
         err_std = results.loc[idx].X_err[:, :].std(dim=-1)
 
         plt.plot(
-            noise_rel,
+            num_coefs_options,
             err_mean,
             linestyle=method.info["plt_linestyle"],
             linewidth=method.info["plt_linewidth"],
@@ -140,26 +137,21 @@ if do_plot:
             label=method.info["name_disp"],
         )
         # if idx == "L1" or idx == "UNet It jit":
-        plt.fill_between(
-            noise_rel,
-            err_mean + err_std,
-            err_mean - err_std,
-            alpha=0.10,
-            color=method.info["plt_color"],
-        )
+        # plt.fill_between(
+        #     num_coefs_options,
+        #     err_mean + err_std,
+        #     err_mean - err_std,
+        #     alpha=0.10,
+        #     color=method.info["plt_color"],
+        # )
 
     plt.yticks(np.arange(0, 1, step=0.05))
-    plt.xticks(noise_rel)
-    ax.set_xlabel('noise percent')
-    ax.set_ylabel("rel.\\ $\\ell_2$ err. percent")
-    plt.title(
-        "reconstruction rel.\\ $\\ell_2$ for $m=100$ coefficients"
-    )
-    # import pdb; pdb.set_trace()
-
     plt.ylim((-0.01, 1.0))
-    ax.set_xticklabels([f"{int(x*100)}".format(x) for x in ax.get_xticks()])
-    ax.set_yticklabels(["{:,.0%}".format(x) for x in ax.get_yticks()])
+    plt.title("Rel.\\ $\\ell_2$ err. with respect to Number of Coefficients")    
+    ax.set_xlabel('Num Coefficients')
+    ax.set_ylabel("rel.\\ $\\ell_2$ err. percent")
+    # ax.set_xticklabels(["{:,.0%}".format(x) for x in ax.get_xticks()])
+    # ax.set_yticklabels(["{:,.0%}".format(x) for x in ax.get_yticks()])
     plt.legend(loc="upper left", fontsize=12)
 
     if save_plot:
