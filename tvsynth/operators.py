@@ -417,16 +417,13 @@ class Fourier(LinearOperator):
             torch.manual_seed(seed)
 
     def dot(self, x):
-        y = fft(x.cpu().numpy())
-        # y = np.concatenate((y.real, y.imag))        
+        y = fft(x.cpu().numpy())        
         y = torch.tensor(y)
-
         return y
 
     def adj(self, y):
         y = y.cpu().numpy()
         x = ifft(y)
-        # x = ifft(y.real + 1j * y.imag)
         x = torch.tensor(x)
         return x
         

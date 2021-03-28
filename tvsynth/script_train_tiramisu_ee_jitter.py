@@ -63,8 +63,7 @@ def loss_func(pred, tar):
 
 train_phases = 2
 train_params = {
-    "num_epochs": [200, 50],
-    # "batch_size": [40, 40],
+    "num_epochs": [200, 50],    
     "batch_size": [512, 512],
     "loss_func": loss_func,
     "save_path": [

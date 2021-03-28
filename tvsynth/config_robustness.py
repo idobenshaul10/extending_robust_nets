@@ -17,7 +17,6 @@ from operators import (
 from reconstruction_methods import primaldual
 from sklearn import linear_model
 
-
 # # ------ setup ----------
 device = torch.device("cuda:0")
 torch.cuda.set_device(0)

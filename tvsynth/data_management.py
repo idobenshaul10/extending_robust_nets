@@ -217,16 +217,8 @@ def sample_tv_signal(
     coefs[torch.abs(coefs) < min_height] = (
         torch.sign(coefs[torch.abs(coefs) < min_height]) * min_height
     )  # minimal height    
-    
-    
-    # coefs[pos + 1] = (coefs[pos] * -1)
-    # coefs[-1] = coefs.mean()
 
     x_restr = TVSynthesis(n_restr)(coefs)    
-    
-    # x_restr = np.array(x_restr)
-    # import pdb; pdb.set_trace()    
-    # x_restr = torch.tensor(x_restr)
 
 
     # pad with 0s
